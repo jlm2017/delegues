@@ -1,0 +1,80 @@
+doctype
+html
+  head
+    meta(charset="utf-8")
+    meta(http-equiv="x-ua-compatible" content="ie=edge")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    link(href="https://jlm2017.github.io/theme/dist/theme.css", rel="stylesheet" crossorigin="anonymous")
+    link(rel="canonical" href="https://procurations.jlm2017.fr/")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css" integrity="sha256-xaHB15TZbLhew82A2NzY8rvCCp/REcOA/kSpWWO7TlE=" crossorigin="anonymous")
+    link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css", rel="stylesheet", integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN", crossorigin="anonymous")
+    link(rel="icon" href="https://jlm2017.fr//app/uploads/2017/01/cropped-cropped-phi-32x32.png" sizes="32x32")
+    link(rel="icon" href="https://jlm2017.fr//app/uploads/2017/01/cropped-cropped-phi-192x192.png" sizes="192x192")
+    link(rel="apple-touch-icon-precomposed" href="https://jlm2017.fr//app/uploads/2017/01/cropped-cropped-phi-180x180.png")
+    script(src="https://code.jquery.com/jquery-2.2.4.min.js", integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=", crossorigin="anonymous")
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js", integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa", crossorigin="anonymous")
+    meta(name="msapplication-TileImage" content="https://jlm2017.fr//app/uploads/2017/01/cropped-cropped-phi-270x270.png")
+    title Votez pour Jean-Luc Mélenchon par procuration
+    meta(name="description" content="Je souhaite voter pour Jean-Luc Mélenchon, mais je ne serai pas dans ma commune d'inscription le 23 avril et/ou le 7 mai&nbsp;? En trois clics, je trouve quelqu'un qui peut prendre ma procuration.")
+    meta(property="og:locale" content="fr_FR")
+    meta(property="og:type" content="website")
+    meta(property="og:title" content="Votez pour Jean-Luc Mélenchon par procuration")
+    meta(property="og:description" content="Je souhaite voter pour Jean-Luc Mélenchon, mais je ne serai pas dans ma commune d'inscription le 23 avril et/ou le 7 mai&nbsp;? En trois clics, je trouve quelqu'un qui peut prendre ma procuration.")
+    meta(property="og:url" content="https://procurations.jlm2017.fr/")
+    meta(property="og:site_name" content="JLM 2017")
+    meta(property="og:image" content=config.host + "/public/background.jpeg")
+    meta(name="twitter:card" content="summary_large_image")
+    meta(name="twitter:description" content="Je souhaite voter pour Jean-Luc Mélenchon, mais je ne serai pas dans ma commune d'inscription le 23 avril et/ou le 7 mai&nbsp;? En trois clics, je trouve quelqu'un qui peut prendre ma procuration.")
+    meta(name="twitter:title" content="Votez pour Jean-Luc Mélenchon par procuration")
+    meta(name="twitter:site" content="@JLM_2017")
+    meta(name="twitter:image" content=config.host + "/public/background.jpg")
+    meta(name="twitter:creator" content="@JLM_2017")
+    style.
+      html, body {
+        min-height: 100%;
+        height: auto;
+      }
+    script.
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-57940932-12', 'auto');
+      ga('send', 'pageview');
+  body
+    block body
+      nav.navbar.navbar-default.navbar-static-top
+        .container
+          .navbar-header
+            button(type="button" data-toggle="collapse" data-target="#menu-collapse").navbar-toggle.collapsed
+              span.sr-only Activer la navigation
+              span.icon-bar
+              span.icon-bar
+              span.icon-bar
+            a(href="/").navbar-brand
+              img(alt=" " src="https://jlm2017.github.io/theme/images/jlm_2017.png")
+          .collapse.navbar-collapse(id="menu-collapse")
+            div(id="menu-export")
+            script.
+              (function() {
+                /** SETTINGS **/
+                var themeLocation = 'primary_navigation';
+                var addBootstrapCSS = true;
+                var menu_class = 'nav%20navbar-nav%20navbar-right';
+                var container = '';
+
+                var r = new XMLHttpRequest();
+                r.open('GET',
+                 'https://jlm2017.fr/?menu_export=1&theme_location='+themeLocation+
+                '&menu_class='+menu_class+'&container='+container+
+                (addBootstrapCSS?'&bootstrap=1':''),true);
+                r.onreadystatechange=function(){if(r.readyState!=4||r.status!=200)return;
+                document.getElementById('menu-export').innerHTML = r.responseText;};
+                r.send();
+              })();
+      .wrapper
+        block content
+          .container
+            .row
+              .col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
+                block one-column

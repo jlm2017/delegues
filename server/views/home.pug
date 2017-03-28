@@ -1,0 +1,65 @@
+extends layout
+
+block content
+
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js")
+  .container
+    h1 Recherche des bureaux de Vote&nbsp;:
+    form(action="/search" method="POST")
+      .form-group(class=errors && errors.adresse ? "has-error" : "")
+        label Commune
+        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1")
+        input(type="hidden" name="insee" id="insee")
+        input(type="hidden" name="nomcom" id="nomcom")
+        input(type="hidden" name="dep" id="dep")
+      input.btn.btn-primary.btn-block(type="submit" value="Trouver les bureaux de vote" style="white-space: normal;")
+
+  script.
+    $(function() {
+
+        var loadCommunes = function(query, callback) {
+            if (query.length < 3) return callback();
+            $.ajax({
+                url: 'http://localhost:3000/search/json/?q=' + query,
+                type: 'GET',
+                dataType: 'JSON',
+                data: {
+                    q: query,
+                    page_limit: 10,
+                },
+                error: function() {
+                    callback();
+                },
+                success: function(res) {
+                  var options = res.map(function(feature){
+                    return(feature);
+                  });
+                  for (var i = 0; i < options.length; i++) {
+                     loadedOptions[options[i].insee] = options[i];
+                  }
+                  return callback(options);
+                }
+            });
+        };
+
+        var load = loadCommunes;
+        var loadedOptions= {};
+        var select = $('#input-tags').selectize({
+            maxItems: 1,
+            valueField: 'insee',
+            labelField: 'nomcom',
+            searchField: ['nomcom','insee','dep'],
+            option: [],
+            create: false,
+            load: load,
+            onChange: function(id) {
+              if (loadedOptions[id]){
+                $('#insee').val(loadedOptions[id].insee);
+                $('#nomcom').val(loadedOptions[id].nomcom);
+                $('#dep').val(loadedOptions[id].dep);
+              }
+            }
+        });
+        select[0].selectize.clear();
+        select[0].selectize.clearOptions();
+    });

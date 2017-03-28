@@ -1,0 +1,23 @@
+{
+  "name": "delegue_bureau_vote",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "eslint . && NODE_ENV=test mocha"
+  },
+  "author": "fsimondev",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.15.2",
+    "connect-redis": "^3.2.0",
+    "express": "^4.14.0",
+    "express-session": "^1.14.2",
+    "fuse.js": "^2.6.2",
+    "pug": "^2.0.0-beta6",
+    "redis": "^2.7.1",
+    "validator": "^7.0.0"
+  }
+}
