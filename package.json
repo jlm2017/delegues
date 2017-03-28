@@ -16,8 +16,11 @@
     "express": "^4.14.0",
     "express-session": "^1.14.2",
     "fuse.js": "^2.6.2",
+    "moment": "^2.18.1",
     "pug": "^2.0.0-beta6",
     "redis": "^2.7.1",
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.3",
     "validator": "^7.0.0"
   }
 }

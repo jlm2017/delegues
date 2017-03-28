@@ -3,42 +3,47 @@ extends layout
 block content
 
   .container
-    form(action="/procuration" method="POST")
-    .form-group(class=errors && errors.first_name ? "has-error" : "")
-      label Prénom
-      input.form-control.input-block(type="text" name="first_name" required value=form && !(errors && errors.first_name) ? form.first_name : '')
-      if errors && errors.first_name
-        span.help-block= errors.first_name
-    .form-group(class=errors && errors.last_name ? "has-error" : "")
-      label Nom
-      input.form-control.input-block(type="text" name="last_name" required value=form && !(errors && errors.last_name) ? form.last_name : '')
-      if errors && errors.last_name
-        span.help-block= errors.last_name
-    .form-group(class=errors && errors.date ? "has-error" : "")
-      label Date de naissance (JJ/MM/AAAA)
-      input.form-control.input-block(type="text" name="date" required value=form && !(errors && errors.date) ? form.date : '')
-      if errors && errors.date
-        span.help-block= errors.date
-    .form-group(class=errors && errors.phone ? "has-error" : "")
-      label Numéro de téléphone portable (important, il servira à vous contacter)
-      input.form-control.input-block(type="text" name="phone" required value=form && !(errors && errors.phone) ? form.phone : '')
-      if errors && errors.phone
-        span.help-block= errors.phone
-    .form-group(class=errors && errors.adresse ? "has-error" : "")
-      label Adresse (ligne 1)
-      input.form-control.input-block(type="text" name="address1" required value=form && !(errors && errors.address) ? form.address1 : '')
-      label Adresse (ligne 2)
-      input.form-control.input-block(type="text" name="address2" value=form && !(errors && errors.address) ? form.address2 : '')
-      if errors && errors.adresse
-        span.help-block= errors.adresse
-    .form-group(class=errors && errors.zipcode ? "has-error" : "")
-      label Code postal
-      input#zipcode.form-control.input-block(type="text" name="zipcode" required value=form && !(errors && errors.zipcode) ? form.zipcode : '')
-      if errors && errors.zipcode
-        span.help-block= errors.zipcode
-    .form-group(class=errors && errors.commune ? "has-error" : "")
-      label Commune d'inscription sur les listes électorales
-      input#commune-input.form-control.input-block(type="text" name="commune" required)
-      if errors && errors.commune
-        span.help-block= errors.commune
-    input.btn.btn-primary.btn-block(type="submit" value="Envoyer")
+    form(action=`/bureau_vote/${insee}/${bur}` method="POST")
+      .form-group(class=errors && errors.first_name ? "has-error" : "")
+        label Prénom
+        input.form-control.input-block(type="text" name="first_name" required value=form && !(errors && errors.first_name) ? form.first_name : '')
+        if errors && errors.first_name
+          span.help-block= errors.first_name
+      .form-group(class=errors && errors.last_name ? "has-error" : "")
+        label Nom
+        input.form-control.input-block(type="text" name="last_name" required value=form && !(errors && errors.last_name) ? form.last_name : '')
+        if errors && errors.last_name
+          span.help-block= errors.last_name
+      .form-group(class=errors && errors.email ? "has-error" : "")
+        label Email
+        input.form-control.input-block(type="text" name="email" required value=form && !(errors && errors.email) ? form.email : '')
+        if errors && errors.email
+          span.help-block= errors.email
+      .form-group(class=errors && errors.date ? "has-error" : "")
+        label Date de naissance (JJ/MM/AAAA)
+        input.form-control.input-block(type="text" name="date" required value=form && !(errors && errors.date) ? form.date : '')
+        if errors && errors.date
+          span.help-block= errors.date
+      .form-group(class=errors && errors.phone ? "has-error" : "")
+        label Numéro de téléphone portable (important, il servira à vous contacter)
+        input.form-control.input-block(type="text" name="phone" required value=form && !(errors && errors.phone) ? form.phone : '')
+        if errors && errors.phone
+          span.help-block= errors.phone
+      .form-group(class=errors && errors.adresse ? "has-error" : "")
+        label Adresse (ligne 1)
+        input.form-control.input-block(type="text" name="address1" required value=form && !(errors && errors.address) ? form.address1 : '')
+        label Adresse (ligne 2)
+        input.form-control.input-block(type="text" name="address2" value=form && !(errors && errors.address) ? form.address2 : '')
+        if errors && errors.adresse
+          span.help-block= errors.adresse
+      .form-group(class=errors && errors.zipcode ? "has-error" : "")
+        label Code postal
+        input#zipcode.form-control.input-block(type="text" name="zipcode" required value=form && !(errors && errors.zipcode) ? form.zipcode : '')
+        if errors && errors.zipcode
+          span.help-block= errors.zipcode
+      .form-group(class=errors && errors.commune ? "has-error" : "")
+        label Commune d'inscription sur les listes électorales
+        input#commune-input.form-control.input-block(type="text" name="commune" required)
+        if errors && errors.commune
+          span.help-block= errors.commune
+      input.btn.btn-primary.btn-block(type="submit" value="Envoyer")

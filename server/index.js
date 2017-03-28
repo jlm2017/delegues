@@ -1,17 +1,22 @@
 'use strict';
 
-const bureauxVote = require('../bureaux.json')
+const bureauxVote = require('../bureaux.json');
 const bluebird = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
-const Fuse = require('fuse.js')
 const session = require('express-session');
+const Fuse = require('fuse.js');
+const moment = require('moment');
 const path = require('path');
 const redisPkg = require('redis');
+const request = require('request-promise-native');
 const validator = require('validator');
 
+bluebird.promisifyAll(redisPkg.RedisClient.prototype);
+bluebird.promisifyAll(redisPkg.Multi.prototype);
 
 var app = express();
+var wrap = fn => (...args) => fn(...args).catch(args[2]);
 const config = require('../config');
 var RedisStore = require('connect-redis')(session);
 var redis = redisPkg.createClient({prefix: config.redisPrefix});
@@ -25,7 +30,7 @@ bureauxVote.forEach(function(bureau) {
     listeInsee[bureau.insee] = bureau.insee;
     listeCommune.push({insee: bureau.insee, nomcom: bureau.nomcom, dep: bureau.dep});
   }
-})
+});
 // console.log(listeCommune);
 
 // Static files
@@ -58,14 +63,14 @@ app.post('/search', (req, res) => {
   var query = req.body.insee;
 
   var fuseOptions = {
-  shouldSort: true,
-  threshold: 0,
-  location: 0,
-  distance: 0,
-  maxPatternLength: 32,
-  minMatchCharLength: 1,
-  keys: [
-    "insee"
+    shouldSort: true,
+    threshold: 0,
+    location: 0,
+    distance: 0,
+    maxPatternLength: 32,
+    minMatchCharLength: 1,
+    keys: [
+      'insee'
     ]
   };
 
@@ -79,16 +84,16 @@ app.get('/search/json', (req, res) => {
   var query = req.query.q[0];
 
   var fuseOptions = {
-  shouldSort: true,
-  threshold: 0.6,
-  location: 0,
-  distance: 100,
-  maxPatternLength: 32,
-  minMatchCharLength: 1,
-  keys: [
-    "insee",
-    "nomcom",
-    "dep"
+    shouldSort: true,
+    threshold: 0.6,
+    location: 0,
+    distance: 100,
+    maxPatternLength: 32,
+    minMatchCharLength: 1,
+    keys: [
+      'insee',
+      'nomcom',
+      'dep'
     ]
   };
   var fuse = new Fuse(listeCommune, fuseOptions); // "list" is the item array
@@ -98,7 +103,82 @@ app.get('/search/json', (req, res) => {
 });
 
 app.get('/bureau_vote/:insee/:bur', (req, res) => {
-  return res.render('formForDelegue', {insee: req.params.insee, bur: req.params.bur});
+  return res.render('formForDelegue', {insee: req.params.insee, bur: req.params.bur, errors:req.session.errors, form: req.session.form});
+});
+
+app.post('/bureau_vote/:insee/:bur', wrap(async (req, res) => {
+  req.session.errors = {};
+  if (!req.body.first_name || !validator.isLength(req.body.first_name, {min: 1, max: 300})) {
+    req.session.errors['first_name'] = 'Prénom invalide.';
+  }
+  if (!req.body.last_name || !validator.isLength(req.body.last_name, {min: 1, max: 300})) {
+    req.session.errors['last_name'] = 'Nom invalide.';
+  }
+  if (!req.body.email || !validator.isEmail(req.body.email)) {
+    req.session.errors['email'] = 'Email invalide.';
+  }
+  if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
+    req.session.errors['date'] = 'Date invalide.';
+  }
+  if (!req.body.zipcode || !validator.matches(req.body.zipcode, /^\d{5}$/)) {
+    req.session.errors['zipcode'] = 'Code postal invalide';
+  }
+  if (!req.body.address1 || !validator.isLength(req.body.address1, {min: 5, max: 500})) {
+    req.session.errors['address'] = 'Adresse invalide.';
+  }
+  if (!validator.isLength(req.body.address2 || '', {min: 0, max: 500})) {
+    req.session.errors['address'] = 'Adresse invalide.';
+  }
+  if (!req.body.phone || !validator.isMobilePhone(req.body.phone, 'fr-FR')) {
+    req.session.errors['phone'] = 'Numéro invalide.';
+  }
+
+  var ban = await request({
+    uri: `https://api-adresse.data.gouv.fr/search/?q=${req.body.commune}&type=municipality&citycode=${req.params.insee}&postcode=${req.body.zipcode}`,
+    json: true
+  });
+  if (!ban.features.length) {
+    req.session.errors['commune'] = 'Pas de commune avec ce code postal.';
+  }
+
+  if (Object.keys(req.session.errors).length > 0) {
+    req.session.form = req.body;
+    return res.redirect(`/bureau_vote/${req.params.insee}/${req.params.bur}`);
+    // return res.render('formForDelegue', {form: req.body, errors: req.session.errors});
+  }
+
+  delete req.session.errors;
+
+  console.log(req.body);
+
+  // if new offer, add in the list of the commune
+  if (!await redis.getAsync(`${req.body.email}`)) {
+    await redis.rpushAsync(`${req.params.insee}:${req.params.bur}`, req.body.email);
+    await redis.rpushAsync('all', req.session.email);
+  }
+  //
+  await redis.setAsync(`${req.body.email}`, JSON.stringify({
+    email: req.body.email,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    phone: req.body.phone,
+    date: req.body.date,
+    zipcode: req.body.zipcode,
+    address1: req.body.address1,
+    address2: req.body.address2,
+    commune: req.body.commune
+  }));
+  req.session.insee = req.params.insee;
+  req.session.bur = req.params.bur;
+
+  return res.redirect('/merci');
+}));
+
+app.get('/merci', (req, res) => {
+  if (req.session.insee && req.session.bur)
+    return res.render('merci',  {insee: req.session.insee, bur: req.session.bur})
+  return res.render('merci');
+
 });
 
 app.listen(process.env.PORT || 3000, '127.0.0.1', (err) => {
