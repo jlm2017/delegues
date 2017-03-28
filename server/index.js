@@ -149,34 +149,54 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res) => {
 
   delete req.session.errors;
 
-  console.log(req.body);
-
-  // if new offer, add in the list of the commune
-  if (!await redis.getAsync(`${req.body.email}`)) {
-    await redis.rpushAsync(`${req.params.insee}:${req.params.bur}`, req.body.email);
-    await redis.rpushAsync('all', req.session.email);
-  }
-  //
-  await redis.setAsync(`${req.body.email}`, JSON.stringify({
-    email: req.body.email,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    phone: req.body.phone,
-    date: req.body.date,
-    zipcode: req.body.zipcode,
-    address1: req.body.address1,
-    address2: req.body.address2,
-    commune: req.body.commune
-  }));
   req.session.insee = req.params.insee;
   req.session.bur = req.params.bur;
+  // if new offer, add in the list of the commune
 
-  return res.redirect('/merci');
+  if (!await redis.getAsync(`${req.params.insee}:${req.params.bur}:t`)) {
+    await redis.setAsync(`${req.params.insee}:${req.params.bur}:t`, JSON.stringify({
+      email: req.body.email,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone: req.body.phone,
+      date: req.body.date,
+      zipcode: req.body.zipcode,
+      address1: req.body.address1,
+      address2: req.body.address2,
+      commune: req.body.commune
+    }));
+    return res.redirect('/merci');
+  }
+  if (!await redis.getAsync(`${req.params.insee}:${req.params.bur}:s`)) {
+    await redis.setAsync(`${req.params.insee}:${req.params.bur}:s`, JSON.stringify({
+      email: req.body.email,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone: req.body.phone,
+      date: req.body.date,
+      zipcode: req.body.zipcode,
+      address1: req.body.address1,
+      address2: req.body.address2,
+      commune: req.body.commune
+    }));
+    return res.redirect('/merci');
+  }
+
+  return res.redirect('/no_need_delegue');
 }));
+
+
+app.get('/no_need_delegue', (req, res) => {
+  if (req.session.insee && req.session.bur)
+    return res.render('bureauPlein',  {insee: req.session.insee, bur: req.session.bur});
+  return res.render('bureauPlein');
+
+});
+
 
 app.get('/merci', (req, res) => {
   if (req.session.insee && req.session.bur)
-    return res.render('merci',  {insee: req.session.insee, bur: req.session.bur})
+    return res.render('merci',  {insee: req.session.insee, bur: req.session.bur});
   return res.render('merci');
 
 });
