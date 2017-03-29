@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
 const Fuse = require('fuse.js');
+const morgan = require('morgan');
 const moment = require('moment');
 const path = require('path');
 const redisPkg = require('redis');
@@ -40,6 +41,7 @@ app.locals.config = config;
 app.enable('trust proxy');
 app.set('views', './server/views');
 app.set('view engine', 'pug');
+app.get('env') === 'development' && app.use(morgan('dev'));
 app.use(bodyParser.json({limit: '5mb'}));
 app.use(bodyParser.urlencoded({
   limit: '5mb',
