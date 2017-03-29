@@ -1,6 +1,20 @@
-// Put here your email sending configurations!
 module.exports = {
-
+  emailTransport: {
+    host: 'localhost',
+    port: 1025
+    // auth: { user: '####', pass: '####' }
+  },
+  emailOptions: {
+    from: 'Your Name Here <example@example.com>'
+  },
+  mails: {
+    step1: 'https://htmlcontent',
+     invitation: 'https://htmlcontent',
+     requestMatch: 'https://htmlcontent',
+     offerMatch: 'https://htmlcontent',
+     matchInformations: 'https://htmlcontent'
+   },
+  lecDest: 'procurations@jlm2017.fr',
   users: [
     {
       username: 'admin',

@@ -3,11 +3,14 @@ extends layout
 block content
 
   .container
-    h1 test&nbsp;:
-      each bur in listeBur
-        .row
-          .col-sm-6 #{bur.nomcom} - #{bur.bur}
-          .col-sm-6
-            a.btn.btn-primary.btn-block(href=`/bureau_vote/${bur.insee}/${bur.bur}` target="_blank") Voir plus
-        p= bur.insee
-        p= bur.bur
+    .row
+      .col-responsive
+        h1(style="text-align: center;") liste des bureaux de vote dans la commune de #{listeBur[0].nomcom}
+        br
+    .row
+      p Un texte invitant les geans a choisir leur bureau de vote dans la liste suivante
+      form(method="POST", action=`/bureau_vote/${listeBur[0].insee}`)
+        select(name="bureau")
+          each bur in listeBur
+            option(value=bur.bur) #{bur.bur}
+        input.btn.btn-primary.btn-block(type="submit" value="S'inscrire" style="white-space: normal;")

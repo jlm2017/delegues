@@ -8,10 +8,7 @@ block content
     form(action="/search" method="POST")
       .form-group(class=errors && errors.adresse ? "has-error" : "")
         label Commune
-        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1")
-        input(type="hidden" name="insee" id="insee")
-        input(type="hidden" name="nomcom" id="nomcom")
-        input(type="hidden" name="dep" id="dep")
+        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee")
       input.btn.btn-primary.btn-block(type="submit" value="Trouver les bureaux de vote" style="white-space: normal;")
 
   script.
@@ -27,38 +24,31 @@ block content
                     q: query,
                     page_limit: 10,
                 },
-                error: function() {
-                    callback();
+                error: function(res) {
+                  callback();
                 },
                 success: function(res) {
-                  var options = res.map(function(feature){
-                    return(feature);
+                  var options = res.map(function(commune, index) {
+                    return {
+                      insee: commune.insee,
+                      label: commune.nomcom + ', ' + commune.dep,
+                      score: index,
+                      search: query
+                      };
                   });
-                  for (var i = 0; i < options.length; i++) {
-                     loadedOptions[options[i].insee] = options[i];
-                  }
                   return callback(options);
                 }
             });
         };
 
-        var load = loadCommunes;
-        var loadedOptions= {};
         var select = $('#input-tags').selectize({
             maxItems: 1,
             valueField: 'insee',
-            labelField: 'nomcom',
-            searchField: ['nomcom','insee','dep'],
-            option: [],
+            labelField: 'label',
+            searchField: 'search',
             create: false,
-            load: load,
-            onChange: function(id) {
-              if (loadedOptions[id]){
-                $('#insee').val(loadedOptions[id].insee);
-                $('#nomcom').val(loadedOptions[id].nomcom);
-                $('#dep').val(loadedOptions[id].dep);
-              }
-            }
+            sortField: 'score',
+            load: loadCommunes
         });
         select[0].selectize.clear();
         select[0].selectize.clearOptions();
