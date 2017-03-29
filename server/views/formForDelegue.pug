@@ -36,14 +36,4 @@ block content
         input.form-control.input-block(type="text" name="address2" value=form && !(errors && errors.address) ? form.address2 : '')
         if errors && errors.adresse
           span.help-block= errors.adresse
-      .form-group(class=errors && errors.zipcode ? "has-error" : "")
-        label Code postal
-        input#zipcode.form-control.input-block(type="text" name="zipcode" required value=form && !(errors && errors.zipcode) ? form.zipcode : '')
-        if errors && errors.zipcode
-          span.help-block= errors.zipcode
-      .form-group(class=errors && errors.commune ? "has-error" : "")
-        label Commune d'inscription sur les listes électorales
-        input#commune-input.form-control.input-block(type="text" name="commune" required)
-        if errors && errors.commune
-          span.help-block= errors.commune
       input.btn.btn-primary.btn-block(type="submit" value="Envoyer")

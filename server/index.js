@@ -121,9 +121,6 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
   if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
     req.session.errors['date'] = 'Date invalide.';
   }
-  if (!req.body.zipcode || !validator.matches(req.body.zipcode, /^\d{5}$/)) {
-    req.session.errors['zipcode'] = 'Code postal invalide';
-  }
   if (!req.body.address1 || !validator.isLength(req.body.address1, {min: 5, max: 500})) {
     req.session.errors['address'] = 'Adresse invalide.';
   }
@@ -134,18 +131,9 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
     req.session.errors['phone'] = 'Numéro invalide.';
   }
 
-  var ban = await request({
-    uri: `https://api-adresse.data.gouv.fr/search/?q=${req.body.commune}&type=municipality&citycode=${req.params.insee}&postcode=${req.body.zipcode}`,
-    json: true
-  });
-  if (!ban.features.length) {
-    req.session.errors['commune'] = 'Pas de commune avec ce code postal.';
-  }
-
   if (Object.keys(req.session.errors).length > 0) {
     req.session.form = req.body;
     return res.redirect(`/bureau_vote/${req.params.insee}`);
-    // return res.render('formForDelegue', {form: req.body, errors: req.session.errors});
   }
 
   delete req.session.errors;
@@ -186,7 +174,7 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
 }));
 
 app.get('/confirmation/:token', wrap(async (req, res) => {
-  var data = await redis.getAsync(`${req.params.token}`);
+  var data = JSON.parse(await redis.getAsync(`${req.params.token}`));
   if (!data) {
     return res.status(401).render('errorMessage', {
       message: 'Ce lien est invalide ou périmé. Cela signifie probablement que vous\
@@ -194,14 +182,13 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
       votre boîte mail.'
     });
   }
-
   await redis.delAsync(`${req.params.token}`);
   if (!await redis.getAsync(`${data.insee}:${data.bur}:t`)) {
-    await redis.setAsync(`${data.insee}:${data.bur}:t`, data);
+    await redis.setAsync(`${data.insee}:${data.bur}:t`, JSON.stringify(data));
     return res.redirect('/merci');
   }
   if (!await redis.getAsync(`${data.insee}:${data.bur}:s`)) {
-    await redis.setAsync(`${data.insee}:${data.bur}:s`, data);
+    await redis.setAsync(`${data.insee}:${data.bur}:s`, JSON.stringify(data));
     return res.redirect('/merci');
   }
 
