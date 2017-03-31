@@ -9,6 +9,7 @@ const htmlToText = require('nodemailer-html-to-text').htmlToText;
 const morgan = require('morgan');
 const moment = require('moment');
 const redisPkg = require('redis');
+const request = require('request-promise-native');
 const uuid = require('uuid/v4');
 const validator = require('validator');
 
@@ -158,19 +159,32 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
     bur:  req.params.bur
   }));
 
+  var emailContent = await request({
+    uri: config.mails.envoiToken,
+    qs: {
+      EMAIL: req.body.email,
+      LINK: `${config.host}confirmation/${token}`,
+      BUREAU: `${req.params.insee}-${req.params.bur}`
+    }
+  });
+
   var mailOptions = Object.assign({
     to: req.body.email,
     subject: 'Délégué bureau de vote pour la France Insoumise',
-    html: `${config.host}confirmation/${token}`
+    html: emailContent
   }, config.emailOptions);
 
   mailer.sendMail(mailOptions, (err) => {
     if (err){
       return next(err);
     }
-    res.redirect('/recherche');
+    res.redirect('/email_envoye');
   });
 }));
+
+app.get('/email_envoye', (req, res) => {
+  res.render('email_envoye');
+});
 
 app.get('/confirmation/:token', wrap(async (req, res) => {
   var data = JSON.parse(await redis.getAsync(`${req.params.token}`));
