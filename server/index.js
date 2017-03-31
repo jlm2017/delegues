@@ -190,10 +190,10 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
   if (!await redis.getAsync(`${data.insee}:${data.bur}:s`)) {
     await redis.setAsync(`${data.insee}:${data.bur}:s`, JSON.stringify(data));
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
-
-    for (var i=0; i < bureauxParCodeINSEE[req.params.insee].length; i++) {
-      if (bureauxParCodeINSEE[req.params.insee][i].bur === req.params.bur) {
-        bureauxParCodeINSEE[req.params.insee][i].full = true;
+    console.log();
+    for (var i=0; i < bureauxParCodeINSEE[data.insee].length; i++) {
+      if (bureauxParCodeINSEE[data.insee][i].bur === req.params.bur) {
+        bureauxParCodeINSEE[data.insee][i].full = true;
       }
     }
     return res.redirect('/merci');
