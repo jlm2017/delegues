@@ -67,11 +67,23 @@ app.get('/search', (req, res) => {
   return res.render('home', {user: 'test', bureauxVote: bureauxVote});
 });
 
-app.post('/search', (req, res) => {
-  var listBurInCom = listeInsee[req.body.insee];
-
+app.post('/search', wrap(async (req, res) => {
+  var listBurInCom = [];
+  for (var i = 0; i < listeInsee[req.body.insee].length; i++) {
+    if (listeInsee[req.body.insee][i].full !== true) {
+      if (await redis.getAsync(`${listeInsee[req.body.insee][i].insee}:${listeInsee[req.body.insee][i].bur}:s`)) {
+        listeInsee[req.body.insee][i].full = true;
+      }
+      else {
+        listBurInCom.push(listeInsee[req.body.insee][i]);
+      }
+    }
+  }
+  if (listBurInCom.length === 0) {
+    return res.render('noBurInCom', {nomcom: listeInsee[req.body.insee][0].nomcom});
+  }
   return res.render('listeByCom', {listeBur: listBurInCom});
-});
+}));
 
 app.get('/search/json', (req, res) => {
   delete req.session.bur;
@@ -101,7 +113,7 @@ app.post('/bureau_vote/:insee', wrap(async (req, res) => {
   return res.render('formForDelegue', {insee: req.params.insee, bur: req.session.bur, errors:req.session.errors, form: req.session.form});
 }));
 
-app.get('/bureau_vote/:insee/:bur', (req, res) => {
+app.get('/bureau_vote/:insee', (req, res) => {
   return res.render('formForDelegue', {insee: req.params.insee, bur: req.params.bur, errors:req.session.errors, form: req.session.form});
 });
 
@@ -117,6 +129,9 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
   }
   if (!req.body.email || !validator.isEmail(req.body.email)) {
     req.session.errors['email'] = 'Email invalide.';
+  }
+  if (await redis.getAsync(`${req.body.email}`)) {
+    req.session.errors['email'] = 'Email est déjà utilisé.';
   }
   if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
     req.session.errors['date'] = 'Date invalide.';
@@ -185,10 +200,18 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
   await redis.delAsync(`${req.params.token}`);
   if (!await redis.getAsync(`${data.insee}:${data.bur}:t`)) {
     await redis.setAsync(`${data.insee}:${data.bur}:t`, JSON.stringify(data));
+    await redis.setAsync(`${data.email}`, JSON.stringify(data));
     return res.redirect('/merci');
   }
   if (!await redis.getAsync(`${data.insee}:${data.bur}:s`)) {
     await redis.setAsync(`${data.insee}:${data.bur}:s`, JSON.stringify(data));
+    await redis.setAsync(`${data.email}`, JSON.stringify(data));
+
+    for (var i=0; i < listeInsee[req.params.insee].length; i++) {
+      if (listeInsee[req.params.insee][i].bur === req.params.bur) {
+        listeInsee[req.params.insee][i].full = true;
+      }
+    }
     return res.redirect('/merci');
   }
 

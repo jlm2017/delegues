@@ -8,7 +8,7 @@ block content
     form(action="/search" method="POST")
       .form-group(class=errors && errors.adresse ? "has-error" : "")
         label Commune
-        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee")
+        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee" required)
       input.btn.btn-primary.btn-block(type="submit" value="Trouver les bureaux de vote" style="white-space: normal;")
 
   script.

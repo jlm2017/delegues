@@ -6,11 +6,12 @@ block content
     .row
       .col-responsive
         h1(style="text-align: center;") liste des bureaux de vote dans la commune de #{listeBur[0].nomcom}
-        br
+        hr
     .row
-      p Un texte invitant les geans a choisir leur bureau de vote dans la liste suivante
-      form(method="POST", action=`/bureau_vote/${listeBur[0].insee}`)
-        select(name="bureau")
-          each bur in listeBur
-            option(value=bur.bur) #{bur.bur}
-        input.btn.btn-primary.btn-block(type="submit" value="S'inscrire" style="white-space: normal;")
+      .col-responsive
+        p Un texte invitant les geans a choisir leur bureau de vote dans la liste suivante
+        form(method="POST", action=`/bureau_vote/${listeBur[0].insee}`)
+          select.col-responsive(name="bureau")
+            each bur in listeBur
+              option(value=bur.bur) #{bur.bur}
+          input.btn.btn-primary.btn-block(type="submit" value="S'inscrire" style="white-space: normal;")
