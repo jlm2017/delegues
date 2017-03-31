@@ -5,6 +5,8 @@ block content
   script(src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js")
   .container
     h1 Recherche des bureaux de Vote&nbsp;:
+    if message && message['errorSearch']
+      p.text-important.text-center= message['errorSearch']
     form(action="/search" method="POST")
       .form-group(class=errors && errors.adresse ? "has-error" : "")
         label Commune

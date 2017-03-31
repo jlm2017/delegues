@@ -64,7 +64,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/search', (req, res) => {
-  return res.render('home', {user: 'test', bureauxVote: bureauxVote});
+  var errors  = req.session.errors;
+  delete req.session.errors;
+  return res.render('home', {message: errors, bureauxVote: bureauxVote});
 });
 
 app.post('/search', wrap(async (req, res) => {
@@ -86,8 +88,12 @@ app.post('/search', wrap(async (req, res) => {
 }));
 
 app.get('/search/json', (req, res) => {
-  delete req.session.bur;
   var query = req.query.q[0];
+
+  if (!validator.isLength(query, {min: 1, max: 300})) {
+    req.session.errors['errorSearch'] = 'Une erreure est survenue, veuillez réesayer plus tard';
+    res.redirect('/search');
+  }
 
   var fuseOptions = {
     shouldSort: true,
@@ -130,7 +136,7 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
   if (!req.body.email || !validator.isEmail(req.body.email)) {
     req.session.errors['email'] = 'Email invalide.';
   }
-  if (await redis.getAsync(`${req.body.email}`)) {
+  if (await redis.getAsync(req.body.email)) {
     req.session.errors['email'] = 'Email est déjà utilisé.';
   }
   if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
@@ -154,6 +160,8 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
   delete req.session.errors;
   delete req.session.bur;
   delete req.session.form;
+  delete req.session.insee;
+  delete req.session.bur;
 
   req.session.insee = req.params.insee;
   req.session.bur = req.params.bur;
