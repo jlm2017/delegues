@@ -9,7 +9,7 @@ block content
         hr
     .row
       .col-responsive
-        p Un texte invitant les geans a choisir leur bureau de vote dans la liste suivante
+        p Un texte invitant les gens a choisir leur bureau de vote dans la liste suivante
         form(method="POST", action=`/bureau_vote/${listeBur[0].insee}`)
           select.col-responsive(name="bureau")
             each bur in listeBur

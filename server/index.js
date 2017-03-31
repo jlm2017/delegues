@@ -1,18 +1,14 @@
 'use strict';
 
-const bureauxVote = require('../bureaux.json');
 const bluebird = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
-const Fuse = require('fuse.js');
 const nodemailer = require('nodemailer');
 const htmlToText = require('nodemailer-html-to-text').htmlToText;
 const morgan = require('morgan');
 const moment = require('moment');
-const path = require('path');
 const redisPkg = require('redis');
-const request = require('request-promise-native');
 const uuid = require('uuid/v4');
 const validator = require('validator');
 
@@ -26,19 +22,10 @@ var mailer = nodemailer.createTransport(config.emailTransport);
 mailer.use('compile', htmlToText());
 var RedisStore = require('connect-redis')(session);
 var redis = redisPkg.createClient({prefix: config.redisPrefix});
-var listeCommune = [];
-var listeInsee = {};
 
-// console.log(bureauxVote);
 
-bureauxVote.forEach(function(bureau) {
-  if (!listeInsee[bureau.insee]) {
-    listeInsee[bureau.insee] = [];
-    listeCommune.push({insee: bureau.insee, nomcom: bureau.nomcom, dep: bureau.dep});
-  }
-  listeInsee[bureau.insee].push(bureau);
-});
-// console.log(listeCommune);
+const {bureauxParCodeINSEE} = require('./communes');
+const fuse = require('./search');
 
 // Static files
 
@@ -60,54 +47,43 @@ app.use(session({
 
 // Public routes
 app.get('/', (req, res) => {
-  return res.redirect('/search');
+  return res.redirect('/recherche');
 });
 
-app.get('/search', (req, res) => {
+
+app.get('/recherche', (req, res) => {
   var errors  = req.session.errors;
   delete req.session.errors;
-  return res.render('home', {message: errors, bureauxVote: bureauxVote});
+  return res.render('home', {message: errors});
 });
 
-app.post('/search', wrap(async (req, res) => {
+app.post('/recherche', wrap(async (req, res) => {
   var listBurInCom = [];
-  for (var i = 0; i < listeInsee[req.body.insee].length; i++) {
-    if (listeInsee[req.body.insee][i].full !== true) {
-      if (await redis.getAsync(`${listeInsee[req.body.insee][i].insee}:${listeInsee[req.body.insee][i].bur}:s`)) {
-        listeInsee[req.body.insee][i].full = true;
+  for (var i = 0; i < bureauxParCodeINSEE[req.body.insee].length; i++) {
+    if (bureauxParCodeINSEE[req.body.insee][i].full !== true) {
+      if (await redis.getAsync(`${bureauxParCodeINSEE[req.body.insee][i].insee}:${bureauxParCodeINSEE[req.body.insee][i].bur}:s`)) {
+        bureauxParCodeINSEE[req.body.insee][i].full = true;
       }
       else {
-        listBurInCom.push(listeInsee[req.body.insee][i]);
+        listBurInCom.push(bureauxParCodeINSEE[req.body.insee][i]);
       }
     }
   }
   if (listBurInCom.length === 0) {
-    return res.render('noBurInCom', {nomcom: listeInsee[req.body.insee][0].nomcom});
+    return res.render('noBurInCom', {nomcom: bureauxParCodeINSEE[req.body.insee][0].nomcom});
   }
   return res.render('listeByCom', {listeBur: listBurInCom});
 }));
 
-app.get('/search/json', (req, res) => {
+app.get('/recherche/suggestions', (req, res) => {
   var query = req.query.q[0];
 
   if (!validator.isLength(query, {min: 1, max: 300})) {
     req.session.errors['errorSearch'] = 'Une erreure est survenue, veuillez réesayer plus tard';
-    res.redirect('/search');
+    res.redirect('/recherche');
   }
 
-  var fuseOptions = {
-    shouldSort: true,
-    threshold: 0.6,
-    location: 0,
-    distance: 100,
-    maxPatternLength: 32,
-    minMatchCharLength: 1,
-    keys: [
-      'nomcom'
-    ]
-  };
-  var fuse = new Fuse(listeCommune, fuseOptions); // "list" is the item array
-  var result = fuse.search(query).slice(0, 10);
+  const result = fuse.search(query).slice(0, 10);
 
   return res.json(result);
 });
@@ -120,7 +96,7 @@ app.post('/bureau_vote/:insee', wrap(async (req, res) => {
 }));
 
 app.get('/bureau_vote/:insee', (req, res) => {
-  return res.render('formForDelegue', {insee: req.params.insee, bur: req.params.bur, errors:req.session.errors, form: req.session.form});
+  return res.render('formForDelegue', {insee: req.params.insee, bur: req.session.bur, errors:req.session.errors, form: req.session.form});
 });
 
 
@@ -184,7 +160,7 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
 
   var mailOptions = Object.assign({
     to: req.body.email,
-    subject: 'Votre procuration',
+    subject: 'Délégué bureau de vote pour la France Insoumise',
     html: `${config.host}confirmation/${token}`
   }, config.emailOptions);
 
@@ -192,7 +168,7 @@ app.post('/bureau_vote/:insee/:bur', wrap(async (req, res, next) => {
     if (err){
       return next(err);
     }
-    res.redirect('/');
+    res.redirect('/recherche');
   });
 }));
 
@@ -215,18 +191,18 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
     await redis.setAsync(`${data.insee}:${data.bur}:s`, JSON.stringify(data));
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
 
-    for (var i=0; i < listeInsee[req.params.insee].length; i++) {
-      if (listeInsee[req.params.insee][i].bur === req.params.bur) {
-        listeInsee[req.params.insee][i].full = true;
+    for (var i=0; i < bureauxParCodeINSEE[req.params.insee].length; i++) {
+      if (bureauxParCodeINSEE[req.params.insee][i].bur === req.params.bur) {
+        bureauxParCodeINSEE[req.params.insee][i].full = true;
       }
     }
     return res.redirect('/merci');
   }
 
-  return res.redirect('/no_need_delegue');
+  return res.redirect('/bureau_plein');
 }));
 
-app.get('/no_need_delegue', (req, res) => {
+app.get('/bureau_plein', (req, res) => {
   if (req.session.insee && req.session.bur)
     return res.render('bureauPlein',  {insee: req.session.insee, bur: req.session.bur});
   return res.render('bureauPlein');

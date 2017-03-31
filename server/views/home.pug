@@ -7,7 +7,7 @@ block content
     h1 Recherche des bureaux de Vote&nbsp;:
     if message && message['errorSearch']
       p.text-important.text-center= message['errorSearch']
-    form(action="/search" method="POST")
+    form(action="/recherche" method="POST")
       .form-group(class=errors && errors.adresse ? "has-error" : "")
         label Commune
         input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee" required)
@@ -19,7 +19,7 @@ block content
         var loadCommunes = function(query, callback) {
             if (query.length < 3) return callback();
             $.ajax({
-                url: 'http://localhost:3000/search/json/?q=' + query,
+                url: 'http://localhost:3000/recherche/suggestions/?q=' + query,
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
