@@ -231,10 +231,10 @@ app.get('/merci', (req, res) => {
 
 });
 
-app.listen(process.env.PORT || 3000, '127.0.0.1', (err) => {
+app.listen(config.port, '127.0.0.1', (err) => {
   if (err) return console.error(err);
 
-  console.log('Listening on http://localhost:' + (process.env.PORT || 3000));
+  console.log('Listening on http://localhost:' + config.port);
 });
 
 module.exports = app;
