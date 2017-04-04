@@ -32,9 +32,9 @@ block content
                 success: function(res) {
                   var options = res.map(function(commune, index) {
                     return {
-                      insee: commune.insee,
-                      label: commune.nomcom + ', ' + commune.dep,
-                      score: index,
+                      insee: commune.item.insee,
+                      label: commune.item.nomcom + ', ' + commune.item.dep,
+                      score: commune.score,
                       search: query
                       };
                   });
