@@ -19,7 +19,7 @@ block content
         var loadCommunes = function(query, callback) {
             if (query.length < 3) return callback();
             $.ajax({
-                url: 'http://localhost:3000/recherche/suggestions/?q=' + query,
+                url: '/recherche/suggestions/?q=' + query,
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
