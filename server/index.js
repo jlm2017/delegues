@@ -197,14 +197,17 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
   }
   await redis.delAsync(`${req.params.token}`);
   if (!await redis.getAsync(`${data.insee}:${data.bur}:t`)) {
+    data.role = 'titulaire';
+    data.subscribtionDate = new Date();
     await redis.setAsync(`${data.insee}:${data.bur}:t`, JSON.stringify(data));
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
     return res.redirect('/merci');
   }
   if (!await redis.getAsync(`${data.insee}:${data.bur}:s`)) {
+    data.role = 'suppléant';
+    data.subscribtionDate = new Date();
     await redis.setAsync(`${data.insee}:${data.bur}:s`, JSON.stringify(data));
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
-    console.log();
     for (var i=0; i < bureauxParCodeINSEE[data.insee].length; i++) {
       if (bureauxParCodeINSEE[data.insee][i].bur === req.params.bur) {
         bureauxParCodeINSEE[data.insee][i].full = true;

@@ -13,6 +13,7 @@
     "bluebird": "^3.5.0",
     "body-parser": "^1.15.2",
     "connect-redis": "^3.2.0",
+    "csv-stringify": "^1.0.4",
     "express": "^4.14.0",
     "express-session": "^1.14.2",
     "fuse.js": "^2.6.2",
