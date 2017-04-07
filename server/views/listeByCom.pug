@@ -1,17 +1,17 @@
 extends layout
 
 block content
-
   .container
+    h1.text-center Sélectionnez votre bureau de vote
     .row
       .col-responsive
-        h1(style="text-align: center;") liste des bureaux de vote dans la commune de #{listeBur[0].nomcom}
-        hr
-    .row
-      .col-responsive
-        p Un texte invitant les gens a choisir leur bureau de vote dans la liste suivante
-        form(method="POST", action=`/bureau_vote/${listeBur[0].insee}`)
+        p.
+          1. Choisissez votre commune
+        p.lead.text-center= commune
+        p.
+          2. Choisissez votre bureau de vote
+        form(method="POST", action=`/bureau`)
           select.col-responsive(name="bureau")
             each bur in listeBur
               option(value=bur.bur) #{bur.bur}
-          input.btn.btn-primary.btn-block(type="submit" value="S'inscrire" style="white-space: normal;")
+          input.btn.btn-primary.btn-block(type="submit" value="Sélectionner" style="white-space: normal;")

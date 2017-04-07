@@ -1,4 +1,4 @@
-# Délégués dans les bureaux de votes
+# Délégués et assesseurs dans les bureaux de votes
 
 ## Installation
 
@@ -19,7 +19,7 @@ This project works well with [Mosaico standalone](https://github.com/jlm2017/mos
 
 | Clé                          | Valeur
 |------------------------------|-------------
-|[INSEE]:[Bureau]:t            | Informations du délégué titulaire (objet JSON)
-|[INSEE]:[Bureau]:s            | Informations du délégué suppléant (objet JSON)
+|assesseur:[INSEE]:[Bureau]:t            | Informations du premier assesseur titulaire (objet JSON)
+|assesseur:[INSEE]:[Bureau]:s            | Informations du second suppléant (objet JSON)
 |[token]                       | Informations liée au token (objet JSON) [token de validation]
 |[email]                       | Informations liée a l'adresse email (objet JSON)

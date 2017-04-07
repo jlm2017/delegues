@@ -4,18 +4,19 @@ block content
 
   script(src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js")
   .container
-    h1 Recherche des bureaux de Vote&nbsp;:
-    if message && message['errorSearch']
-      p.text-important.text-center= message['errorSearch']
-    form(action="/recherche" method="POST")
-      .form-group(class=errors && errors.adresse ? "has-error" : "")
-        label Commune
-        input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee" required)
-      input.btn.btn-primary.btn-block(type="submit" value="Trouver les bureaux de vote" style="white-space: normal;")
+    h1.text-center Sélectionnez votre bureau de vote
+    .row
+      .col-responsive
+        if message && message['errorSearch']
+          p.text-important.text-center= message['errorSearch']
+        form(action="/recherche" method="POST")
+          .form-group(class=errors && errors.adresse ? "has-error" : "")
+            label 1. Choisissez votre commune
+            input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee" required)
+          input.btn.btn-primary.btn-block(type="submit" value="Sélectionner" style="white-space: normal;")
 
   script.
     $(function() {
-
         var loadCommunes = function(query, callback) {
             if (query.length < 3) return callback();
             $.ajax({
