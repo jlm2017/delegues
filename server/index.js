@@ -49,7 +49,20 @@ app.use(session({
 app.get('/', (req, res) => {
   var errors  = req.session.errors;
   delete req.session.errors;
-  return res.render('home', {message: errors});
+  delete req.session.form;
+  delete req.session.commune;
+  return res.render('choice', {errors});
+
+});
+
+app.get('/delegue', (req, res) => {
+  req.session.role = 'delegues';
+  return res.render('home');
+});
+
+app.get('/asseseur', (req, res) => {
+  req.session.role = 'assesseurs';
+  return res.render('home');
 });
 
 app.get('/recherche/suggestions', (req, res) => {
@@ -59,6 +72,19 @@ app.get('/recherche/suggestions', (req, res) => {
 
   return res.json(result);
 });
+
+app.get('/recherche/suggestions/bureauVote', wrap(async (req, res) => {
+  var bureaux = bureauxParCodeINSEE[req.session.insee];
+  var listBurInCom = [];
+
+  for (var i = 0; i < bureaux.length; i++) {
+    if (await redis.getAsync(`delegues:${bureaux[i].insee}:${bureaux[i].bur}`)) {
+      continue;
+    }
+    listBurInCom.push(bureaux[i]);
+  }
+  return res.json(listBurInCom);
+}));
 
 app.post('/recherche', (req, res) => {
   if (!bureauxParCodeINSEE[req.body.insee]) {
@@ -71,14 +97,14 @@ app.post('/recherche', (req, res) => {
 });
 
 app.get('/bureau', wrap(async (req, res) => {
-  if (!req.session.insee) {
+  if (!req.session.insee || !req.session.role) {
     return res.redirect('/');
   }
 
   var bureaux = bureauxParCodeINSEE[req.session.insee];
   var listBurInCom = [];
   for (var i = 0; i < bureaux.length; i++) {
-    if (await redis.getAsync(`assesseurs:${bureaux[i].insee}:${bureaux[i].bur}:2`)) {
+    if (await redis.getAsync(`${req.session.role}:${bureaux[i].insee}:${bureaux[i].bur}:2`)) {
       continue;
     }
     listBurInCom.push(bureaux[i]);
@@ -86,11 +112,11 @@ app.get('/bureau', wrap(async (req, res) => {
 
   if (listBurInCom.length === 0) {
     return res.render('errorMessage', {
-      message: 'La totalité des bureaux de vote de cette commune ont déjà des assesseurs désignés. Nous vous remercions de votre volonté d\'aider la campagne.'
+      message: `La totalité des bureaux de vote de cette commune ont déjà des ${req.session.role} désignés. Nous vous remercions de votre volonté d\'aider la campagne.`
     });
   }
-
-  return res.render('listeByCom', {commune: bureaux[0].nomcom, listeBur: listBurInCom});
+  req.session.commune = bureaux[0].nomcom;
+  return res.render('listeByCom', {commune: req.session.commune, listeBur: listBurInCom, role: req.session.role});
 }));
 
 app.post('/bureau', wrap(async (req, res) => {
@@ -119,7 +145,6 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   if (!(req.session.bur && req.session.insee)) {
     return res.redirect('/');
   }
-
   var errors = {};
   if (!req.body.first_name || !validator.isLength(req.body.first_name, {min: 1, max: 300})) {
     errors['first_name'] = 'Prénom invalide.';
@@ -130,7 +155,7 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   if (!req.body.email || !validator.isEmail(req.body.email)) {
     errors['email'] = 'Email invalide.';
   }
-  if (await redis.getAsync(`assesseurs:${req.body.email}`)) {
+  if (await redis.getAsync(`${req.body.email}`)) {
     errors['email'] = 'Email est déjà utilisé.';
   }
   if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
@@ -155,6 +180,9 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
       form: req.body
     });
   }
+
+  delete req.session.form;
+
   // if new offer, add in the list of the commune
   var token = uuid();
 
@@ -167,17 +195,17 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
     zipcode: req.body.zipcode,
     address1: req.body.address1,
     address2: req.body.address2,
-    commune: req.body.commune,
-    insee:  req.params.insee,
-    bur:  req.params.bur
+    commune: req.session.commune,
+    insee:  req.session.insee,
+    bur:  req.session.bur,
+    role: req.session.role
   }));
-
   var emailContent = await request({
     uri: config.mails.envoiToken,
     qs: {
       EMAIL: req.body.email,
       LINK: `${config.host}confirmation/${token}`,
-      BUREAU: `${req.params.insee}-${req.params.bur}`
+      BUREAU: `${req.session.commune}-${req.session.bur}`
     }
   });
 
@@ -211,28 +239,52 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
 
   await redis.delAsync(`${req.params.token}`);
 
-  if (!await redis.getAsync(`${data.insee}:${data.bur}:1`)) {
-    data.subscribtionDate = new Date();
-    await redis.setAsync(`assesseurs:${data.insee}:${data.bur}:1`, JSON.stringify(data));
-    await redis.setAsync(`assesseurs:${data.email}`, JSON.stringify(data));
+  if (data.role === 'assesseurs') {
+    if (!await redis.getAsync(`assesseurs:${req.session.insee}:${req.session.bur}:1`)) {
+      data.subscribtionDate = new Date();
+
+      await redis.setAsync(`assesseurs:${req.session.insee}:${req.session.bur}:1`, JSON.stringify(data));
+      await redis.setAsync(`${data.email}`, JSON.stringify(data));
+      return res.redirect('/merci');
+    }
+
+    if (!await redis.getAsync(`assesseurs:${req.session.insee}:${req.session.bur}:2`)) {
+      data.subscribtionDate = new Date();
+      await redis.setAsync(`assesseurs:${req.session.insee}:${req.session.bur}:2`, JSON.stringify(data));
+      await redis.setAsync(`${data.email}`, JSON.stringify(data));
+
+      return res.redirect('/merci');
+    }
+    return res.redirect('/bureau_plein');
+  }
+  else if (data.role === 'delegues') {
+    var listBurAdded = [];
+    for (var i = 0; i < req.session.bur.split(',').length; i++) {
+      var bur = req.session.bur.split(',')[i];
+      if (!await redis.getAsync(`delegues:${req.session.insee}:${bur}`)) {
+        listBurAdded.push(bur);
+        data.subscribtionDate = new Date();
+        await redis.setAsync(`delegues:${req.session.insee}:${bur}`, JSON.stringify(data));
+        await redis.setAsync(`${data.email}`, JSON.stringify(data));
+      }
+    }
+    if (listBurAdded.length === 0) {
+      return res.redirect('/bureau_plein');
+    }
+    req.session.listBurAdded = listBurAdded;
     return res.redirect('/merci');
   }
-
-  if (!await redis.getAsync(`assesseurs:${data.insee}:${data.bur}:2`)) {
-    data.subscribtionDate = new Date();
-    await redis.setAsync(`assesseurs:${data.insee}:${data.bur}:2`, JSON.stringify(data));
-    await redis.setAsync(`${data.email}`, JSON.stringify(data));
-
-    return res.redirect('/merci');
+  if (!req.session.errors) {
+    req.session.errors = [];
   }
-
-  return res.redirect('/bureau_plein');
+  req.session.errors.push('Il y a eu une erreur, veuillez recommancer la démarche. Escusez nous pour le problème survenu!');
+  return res.redirect('/');
 }));
 
 app.get('/bureau_plein', (req, res) => {
   return res.render('errorMessage', {
-    message: `Nous nous n'avons pas besoin de volontaire pour être assesseur\
-    dans le bureau de vote&nbsp;: ${req.session.insee || ''}-${req.session.bur || ''}`
+    message: `Nous nous n'avons pas besoin de volontaire pour être ${req.session.role.slice(0, req.session.role.length - 1)}\
+    dans le bureau de vote&nbsp;: ${req.session.commune || ''}-${req.session.bur || ''}`
   });
 });
 
@@ -241,7 +293,7 @@ app.get('/merci', (req, res) => {
     return res.redirect('/');
   }
 
-  return res.render('merci',  {insee: req.session.insee, bur: req.session.bur});
+  return res.render('merci',  {insee: req.session.commune, bur: req.session.bur, role:req.session.role.slice(0, req.session.role.length - 1)});
 });
 
 app.listen(config.port, '127.0.0.1', (err) => {

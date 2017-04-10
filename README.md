@@ -19,7 +19,8 @@ This project works well with [Mosaico standalone](https://github.com/jlm2017/mos
 
 | Clé                          | Valeur
 |------------------------------|-------------
-|assesseur:[INSEE]:[Bureau]:t            | Informations du premier assesseur titulaire (objet JSON)
-|assesseur:[INSEE]:[Bureau]:s            | Informations du second suppléant (objet JSON)
+|assesseurs:[INSEE]:[Bureau]:1 | Informations de l'assesseur titulaire (objet JSON)
+|assesseurs:[INSEE]:[Bureau]:2 | Informations de l'assesseur suppléant (objet JSON)
+|delegues:[INSEE]:[Bureau]     | Informations du délégué du bureau (objet JSON)
 |[token]                       | Informations liée au token (objet JSON) [token de validation]
 |[email]                       | Informations liée a l'adresse email (objet JSON)
