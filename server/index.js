@@ -211,7 +211,7 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
 
   var mailOptions = Object.assign({
     to: req.body.email,
-    subject: 'Confirmer votre inscription comme assesseur pour la France Insoumise',
+    subject: `Confirmer votre inscription comme ${req.session.role.slice(0, req.session.role.length - 1)} pour la France Insoumise`,
     html: emailContent
   }, config.emailOptions);
 
@@ -228,6 +228,9 @@ app.get('/email_envoye', (req, res) => {
 });
 
 app.get('/confirmation/:token', wrap(async (req, res) => {
+  delete req.session.listBurAdded;
+  delete req.session.listBurNotAvailable;
+
   var data = JSON.parse(await redis.getAsync(`${req.params.token}`));
   if (!data) {
     return res.status(401).render('errorMessage', {
@@ -259,6 +262,7 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
   }
   else if (data.role === 'delegues') {
     var listBurAdded = [];
+    var listBurNotAvailable = [];
     for (var i = 0; i < req.session.bur.split(',').length; i++) {
       var bur = req.session.bur.split(',')[i];
       if (!await redis.getAsync(`delegues:${req.session.insee}:${bur}`)) {
@@ -267,11 +271,15 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
         await redis.setAsync(`delegues:${req.session.insee}:${bur}`, JSON.stringify(data));
         await redis.setAsync(`${data.email}`, JSON.stringify(data));
       }
+      else {
+        listBurNotAvailable.push(bur);
+      }
     }
     if (listBurAdded.length === 0) {
       return res.redirect('/bureau_plein');
     }
     req.session.listBurAdded = listBurAdded;
+    req.session.listBurNotAvailable = listBurNotAvailable;
     return res.redirect('/merci');
   }
   if (!req.session.errors) {
@@ -282,9 +290,27 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
 }));
 
 app.get('/bureau_plein', (req, res) => {
+  if (req.session.role === 'assesseurs') {
+    return res.render('errorMessage', {
+      message: `Nous nous n'avons pas besoin de volontaire pour être ${req.session.role.slice(0, req.session.role.length - 1)}\
+      dans le bureau de vote&nbsp;: ${req.session.commune || ''}-${req.session.bur || ''}`
+    });
+  }
+  var listBurFull = '';
+  for (var i = 0; i < req.session.listBurNotAvailable.split(',').length; i++) {
+    if (listBurFull.length != 0) {
+      if (i != req.session.listBurNotAvailable.split(',').length - 2) {
+        listBurFull += ', ';
+      }
+      else {
+        listBurFull += ' et ';
+      }
+    }
+    listBurFull += ` ${req.session.commune || ''}-${req.session.listBurNotAvailable.split(',')[i] || ''}`;
+  }
   return res.render('errorMessage', {
     message: `Nous nous n'avons pas besoin de volontaire pour être ${req.session.role.slice(0, req.session.role.length - 1)}\
-    dans le bureau de vote&nbsp;: ${req.session.commune || ''}-${req.session.bur || ''}`
+    dans les bureaux de votes&nbsp;: ${listBurFull}`
   });
 });
 
@@ -292,8 +318,10 @@ app.get('/merci', (req, res) => {
   if (!(req.session.insee && req.session.bur)) {
     return res.redirect('/');
   }
-
-  return res.render('merci',  {insee: req.session.commune, bur: req.session.bur, role:req.session.role.slice(0, req.session.role.length - 1)});
+  if (req.session.role === 'assesseurs') {
+    return res.render('merci',  {insee: req.session.commune, bur: req.session.bur , role:req.session.role.slice(0, req.session.role.length - 1)});
+  }
+  return res.render('merci',  {insee: req.session.commune, burs: req.session.listBurAdded , role:req.session.role.slice(0, req.session.role.length - 1)});
 });
 
 app.listen(config.port, '127.0.0.1', (err) => {
