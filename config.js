@@ -9,7 +9,7 @@ module.exports = {
     from: process.env.EMAIL_FROM || 'JLM2017 <nepasrepondre@jlm2017.fr>'
   },
   mails: {
-    envoiToken: process.env.EMAIL_TEMPLATE_URL
+    confirmation: process.env.EMAIL_TEMPLATE_URL
   },
   host: ensureTrailingSlash(process.env.BASE_URL || ''),
   redisPrefix: 'jlm2017:bureaux:',
