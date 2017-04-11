@@ -50,4 +50,9 @@ block content
         input.form-control.input-block(type="text" name="address2" value=form && !(errors && errors.address) ? form.address2 : '')
         if errors && errors.adresse
           span.help-block= errors.adresse
+      .checkbox
+        label
+          input(type="checkbox" name="second_tour")
+          | Je ne suis pas disponible le 7 mai pour le deuxième tour, et ne souhaite me proposer que pour le premier tour.
+
       input.btn.btn-primary.btn-block(type="submit" value="Envoyer")

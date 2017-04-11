@@ -247,7 +247,8 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
     commune: req.session.commune,
     insee:  req.session.insee,
     bureaux:  req.session.bureaux,
-    role: req.session.role
+    role: req.session.role,
+    second_tour: !req.body.second_tour
   }));
 
   var emailContent = await request({
