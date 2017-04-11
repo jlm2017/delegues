@@ -257,7 +257,7 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
       LINK: `${config.host}confirmation/${token}`,
       ROLE: labels[req.session.role].singular,
       COMMUNE: req.session.commune,
-      BUREAUX: req.session.bureaux.join(', ')
+      BUREAUX: Array.isArray(req.session.bureaux) ? req.session.bureaux.join(', ') : req.session.bureaux
     }
   });
 
