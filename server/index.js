@@ -26,12 +26,12 @@ var redis = redisPkg.createClient({prefix: config.redisPrefix});
 
 const labels = {
   delegues: {
-    singular: 'délégué&middot;e',
-    plural: 'délégué&middot;es'
+    singular: 'délégué·e',
+    plural: 'délégué·es'
   },
   assesseurs: {
-    singular: 'assesseur&middot;e',
-    plural: 'assesseur&middot;e&middot;s'
+    singular: 'assesseur·e',
+    plural: 'assesseur·e·s'
   }
 };
 
@@ -111,12 +111,13 @@ app.post('/commune', (req, res) => {
   }
 
   req.session.insee = req.body.insee;
+  req.session.commune = bureauxParCodeINSEE[req.body.insee][0].nomcom;
 
   return res.redirect('/bureau');
 });
 
 app.all('/bureau', (req, res, next) => {
-  if (!req.session.insee || !req.session.role) {
+  if (!req.session.insee || !req.session.role || !req.session.commune) {
     return res.redirect('/');
   }
 
@@ -131,8 +132,6 @@ app.get('/bureau', wrap(async (req, res) => {
       message: `La totalité des bureaux de vote de cette commune ont déjà des ${req.session.role} désignés. Nous vous remercions de votre volonté d\'aider la campagne.`
     });
   }
-
-  req.session.commune = bureaux[0].nomcom;
 
   return res.render('burChoice', {
     commune: req.session.commune,
@@ -171,7 +170,7 @@ app.post('/bureau', wrap(async (req, res) => {
 }));
 
 app.all('/coordonnees', (req, res, next) => {
-  if (!(req.session.bureaux && req.session.insee && req.session.role)) {
+  if (!(req.session.bureaux && req.session.insee && req.session.role && req.session.commune)) {
     return res.redirect('/');
   }
 
@@ -252,17 +251,19 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   }));
 
   var emailContent = await request({
-    uri: config.mails.confirmation,
+    url: config.mails.confirmation,
     qs: {
       EMAIL: req.body.email,
       LINK: `${config.host}confirmation/${token}`,
-      BUREAU: `${req.session.commune}-${req.session.bureaux}`
+      ROLE: labels[req.session.role].singular,
+      COMMUNE: req.session.commune,
+      BUREAUX: req.session.bureaux.join(', ')
     }
   });
 
   var mailOptions = Object.assign({
     to: req.body.email,
-    subject: `Confirmer votre inscription comme ${req.session.role.slice(0, req.session.role.length - 1)} pour la France Insoumise`,
+    subject: `Confirmez votre inscription comme ${labels[req.session.role].singular} pour la France Insoumise`,
     html: emailContent
   }, config.emailOptions);
 
@@ -301,11 +302,12 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
 
     var suppleant = await redis.getAsync(`assesseurs:${data.insee}:${data.bureaux}:1`);
 
-    await redis.setAsync(`assesseurs:${data.insee}:${data.bureaux}:${suppleant ? '2':'1'}`, JSON.stringify(data));
+    await redis.setAsync(`assesseurs:${data.insee}:${data.bureaux}:${suppleant ? '2':'1'}`, data.email);
 
     return res.redirect('/delegues/merci');
   } else if (data.role === 'delegues') {
-    if (data.bureaux.filter(elem => !freeBureaux(data.role, data.insee).includes(elem)).length > 0) {
+    var bureaux = await freeBureaux(data.role, data.insee);
+    if (data.bureaux.filter(elem => !bureaux.includes(elem)).length > 0) {
       return res.redirect('/bureau_plein');
     }
 
@@ -313,7 +315,7 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
 
     for (var i = 0; i < data.bureaux.length; i++) {
-      await redis.setAsync(`delegues:${req.session.insee}:${data.bureaux}`);
+      await redis.setAsync(`delegues:${req.session.insee}:${data.bureaux}`, data.email);
     }
 
     return res.redirect('/assesseurs/merci');
@@ -337,10 +339,10 @@ app.get('/:role/merci', (req, res) => {
   return res.render('merci',  {role: labels[req.params.role].singular});
 });
 
-app.listen(config.port, '127.0.0.1', (err) => {
+app.listen(config.port || 3000, '127.0.0.1', (err) => {
   if (err) return console.error(err);
 
-  console.log('Listening on http://localhost:' + config.port);
+  console.log('Listening on http://localhost:' + (config.port || 3000));
 });
 
 module.exports = app;
