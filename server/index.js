@@ -307,7 +307,11 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
     return res.redirect('/delegues/merci');
   } else if (data.role === 'delegues') {
     var bureaux = await freeBureaux(data.role, data.insee);
-    if (data.bureaux.filter(elem => !bureaux.includes(elem)).length > 0) {
+    if (!Array.isArray(data.bureaux) && !bureaux.includes(data.bureaux)) {
+      return res.redirect('/bureau_plein');
+    }
+
+    if (Array.isArray(data.bureaux) && data.bureaux.filter(elem => !bureaux.includes(elem)).length > 0) {
       return res.redirect('/bureau_plein');
     }
 
