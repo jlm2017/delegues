@@ -156,7 +156,7 @@ app.post('/bureau', wrap(async (req, res) => {
 
 
   if (req.session.role === 'delegues') {
-    if (!req.body.bureau.isArray()) {
+    if (!Array.isArray(req.body.bureau)) {
       return res.sendStatus(401);
     }
 
