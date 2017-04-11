@@ -8,15 +8,8 @@ module.exports = {
     from: 'Your Name Here <example@example.com>'
   },
   mails: {
-    envoiToken: 'https://htmlcontent'
-   },
-  lecDest: 'procurations@jlm2017.fr',
-  users: [
-    {
-      username: 'admin',
-      password: 'password'
-    }
-  ],
+    confirmation: 'https://htmlcontent'
+  },
   host: 'http://localhost:3000/',
   redisPrefix: 'jlm2017:bureauxVote:',
   secret: 'fish keyboard',

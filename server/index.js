@@ -252,7 +252,7 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   }));
 
   var emailContent = await request({
-    uri: config.mails.envoiToken,
+    uri: config.mails.confirmation,
     qs: {
       EMAIL: req.body.email,
       LINK: `${config.host}confirmation/${token}`,
