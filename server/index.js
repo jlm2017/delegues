@@ -203,7 +203,8 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   if (!req.body.email || !validator.isEmail(req.body.email)) {
     errors['email'] = 'Email invalide.';
   }
-  if (JSON.parse(await redis.getAsync(`${req.body.email}`)).confirmation) {
+  var data = JSON.parse(await redis.getAsync(`${req.body.email}`));
+  if (data && data.confirmation) {
     errors['email'] = 'Email est déjà utilisé.';
   }
   if (!req.body.date || !moment(req.body.date, 'DD/MM/YYYY').isValid()) {
