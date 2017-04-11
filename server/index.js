@@ -155,11 +155,11 @@ app.post('/bureau', wrap(async (req, res) => {
 
 
   if (req.session.role === 'delegues') {
-    if (!Array.isArray(req.body.bureau)) {
+    if (!Array.isArray(req.body.bureau) && !bureaux.includes(req.body.bureau)) {
       return res.sendStatus(401);
     }
 
-    if (req.body.bureau.filter(elem => !bureaux.includes(elem)).length > 0) {
+    if (Array.isArray(req.body.bureau) && req.body.bureau.filter(elem => !bureaux.includes(elem)).length > 0) {
       return res.sendStatus(401);
     }
   }
