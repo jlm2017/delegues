@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js")
+  .container
+    h1.text-center Sélectionnez votre bureau de vote
+    .row
+      .col-responsive
+        p.
+          1. Choisissez votre commune
+        p.lead.text-center= commune
+        form(method="POST", action='/bureau')
+          if role == 'assesseurs'
+            p.
+              2. Choisissez le bureau de vote où vous souhaitez être assesseur&middot;e
+          else if role == 'delegues'
+            p.
+              2. Choisissez les bureaux de votes où vous voulez être délégué&middot;e
+            script.
+              $(function() {
+                $('#bureau').selectize({maxItems: 10})[0].selectize.clear();
+              });
+          .form-group
+            select(name="bureau" id="bureau")
+              for bureau in bureaux
+                option(id="bureau" value=bureau)= bureau
+          input.btn.btn-primary.btn-block(type="submit" value="Sélectionner" style="white-space: normal;")

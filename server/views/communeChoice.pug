@@ -9,18 +9,18 @@ block content
       .col-responsive
         if message && message['errorSearch']
           p.text-important.text-center= message['errorSearch']
-        form(action="/recherche" method="POST")
+        form(action="/commune" method="POST")
           .form-group(class=errors && errors.adresse ? "has-error" : "")
             label 1. Choisissez votre commune
-            input.form-control.input-block.selectized(type="text" id="input-tags" tabindex="-1" name="insee" required)
-          input.btn.btn-primary.btn-block(type="submit" value="Sélectionner" style="white-space: normal;")
+            input.form-control.input-block.selectized(type="text" id="insee" name="insee" required)
+          input.btn.btn-primary.btn-block(type="submit" value="Sélectionner")
 
   script.
     $(function() {
         var loadCommunes = function(query, callback) {
             if (query.length < 3) return callback();
             $.ajax({
-                url: '/recherche/suggestions/?q=' + query,
+                url: '/recherche/suggestions/communes?q=' + query,
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
@@ -44,7 +44,7 @@ block content
             });
         };
 
-        var select = $('#input-tags').selectize({
+        var select = $('#insee').selectize({
             maxItems: 1,
             valueField: 'insee',
             labelField: 'label',

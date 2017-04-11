@@ -4,6 +4,20 @@ block content
 
   .container
     form(action=`/coordonnees` method="POST")
+      .row
+        .col-md-6
+          .form-group(class=errors && errors.bureau ? "has-error" : "")
+            label Bureau de vote d'inscription sur les listes électorales
+            input.form-control.input-block(type="text" name="bureau" required value=form && !(errors && errors.bureau) ? form.bureau : '')
+            if errors && errors
+              span.help-block= errors.bureau
+          .form-group(class=errors && errors.numero_inscription ? "has-error" : "")
+            label Numéro d'inscription sur les listes électorales
+            input.form-control.input-block(type="text" name="numero_inscription" required value=form && !(errors && errors.numero_inscription) ? form.numero_inscription : '')
+            if errors && errors
+              span.help-block= errors.numero_inscription
+        .col-md-6
+          img.img-responsive(src="/public/carte.jpg")
       .form-group(class=errors && errors.first_name ? "has-error" : "")
         label Prénom
         input.form-control.input-block(type="text" name="first_name" required value=form && !(errors && errors.first_name) ? form.first_name : '')

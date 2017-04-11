@@ -1,0 +1,29 @@
+extends layout
+
+block content
+
+  .container
+    .row
+      if errors
+        each error in errors
+          p.col-responsive= error
+    .row
+      .col-responsive
+        p.
+          Le premier et le deuxième tour approchent. La France Insoumise doit désigner pour chaque commune et chaque bureau de vote des représentants de notre candidat chargés de s’assurer de la bonne tenue du scrutin.
+        p.
+          Les représentants départementaux auprès des préfectures ont d’ores et déjà été désignés et identifiés par l’équipe nationale.
+        p.
+          Si vous êtes volontaire pour représenter la France Insoumise comme assesseur dans un bureau de vote de votre commune ou comme délégué pour plusieurs bureaux de votes. Si vous êtes disponibles pour être assesseur ou délégué, inscrivez vous!
+    hr
+    .row
+      .col-sm-6
+        a.btn.btn-primary.btn-block.bottom-margin(role="button" href="/delegue" style="white-space: normal;").
+          Je me propose pour être délégué&middot;e dans un ou plusieurs bureaux de vote
+        p.
+          Chaque candidat ou liste de candidats a le droit d’exiger la présence permanente dans chaque bureau de vote d’un délégué habilité à contrôler toutes les opérations de vote, de dépouillement des bulletins et de décompte des voix. Le délégué peut exiger l’inscription au procès verbal de toute observation ou réclamation relative à ces opérations, avant ou après la proclamation des résultats du scrutin. Un même délégué peut être désigné pour plusieurs bureaux de votes.
+      .col-sm-6
+        a.btn.btn-primary.btn-block.bottom-margin(role="button" href="/assesseur" style="white-space: normal;").
+          Je me propose pour être asseseur&middot;e dans un bureau de vote
+        p.
+          Désignés par les différents candidats parmi les électeurs du département. Ils sont chargés notamment de faire signer les électeurs sur la liste d’émargement et de tamponner la carte électorale. Ils participent au bon déroulement du scrutin et au respect des règles de bonne conduite dans le bureau de vote, sous la responsabilité du président de bureau.
