@@ -96,6 +96,10 @@ app.get('/assesseur', (req, res) => {
 app.get('/recherche/suggestions/communes', (req, res) => {
   var query = req.query.q[0];
 
+  if (req.get('If-Modified-Since')) {
+    res.sendStatus(304);
+  }
+
   const result = fuse.search(query.slice(0, 300)).slice(0, 10);
 
   return res.json(result);
