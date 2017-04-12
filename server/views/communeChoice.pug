@@ -12,47 +12,34 @@ block content
         form(action="/commune" method="POST")
           .form-group(class=errors && errors.adresse ? "has-error" : "")
             label 1. Choisissez votre commune d'inscription sur les listes électorales
-            input.form-control.input-block.selectized(type="text" id="insee" name="insee" required)
+            input.form-control.input-block.selectized(type="text" id="commune-input" name="insee" required)
           input.btn.btn-primary.btn-block(type="submit" value="Sélectionner")
 
   script.
     $(function() {
-        var loadCommunes = function(query, callback) {
-            if (query.length < 3) return callback();
-            $.ajax({
-                url: '/recherche/suggestions/communes?q=' + query,
-                type: 'GET',
-                dataType: 'JSON',
-                data: {
-                    q: query,
-                    page_limit: 10,
-                },
-                error: function(res) {
-                  callback();
-                },
-                success: function(res) {
-                  var options = res.map(function(commune, index) {
-                    return {
-                      insee: commune.item.insee,
-                      label: commune.item.nomcom + ', ' + commune.item.dep,
-                      score: commune.score,
-                      search: query
-                      };
-                  });
-                  return callback(options);
-                }
-            });
-        };
-
-        var select = $('#insee').selectize({
-            maxItems: 1,
-            valueField: 'insee',
-            labelField: 'label',
-            searchField: 'search',
-            create: false,
-            sortField: 'score',
-            load: loadCommunes
-        });
-        select[0].selectize.clear();
-        select[0].selectize.clearOptions();
+      var communeSelectize = $('#commune-input').selectize({
+        load: function(query, callback) {
+          if (!query.length) return callback();
+          var url = 'https://api-adresse.data.gouv.fr/search/?q=' + query + '&type=municipality&limit=20';
+          url = $('#zipcode').length > 0 ? (url + '&postcode=' + $('#zipcode').val()) : url;
+          $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(res) {
+              var list = res.features.map(function(feature) {
+                return {
+                  citycode: feature.properties.citycode,
+                  label: feature.properties.city + ', ' + feature.properties.context
+                };
+              });
+              return callback(list);
+            }
+          });
+        },
+        searchField: 'label',
+        valueField: 'citycode',
+        labelField: 'label',
+        maxItems: 1,
+        create: false
+      });
     });

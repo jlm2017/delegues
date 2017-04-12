@@ -36,7 +36,6 @@ const labels = {
 };
 
 const {bureauxParCodeINSEE} = require('./communes');
-const fuse = require('./search');
 
 async function freeBureaux(role, insee) {
   var bureaux = bureauxParCodeINSEE[insee];
@@ -93,25 +92,13 @@ app.get('/assesseur', (req, res) => {
   return res.render('communeChoice');
 });
 
-app.get('/recherche/suggestions/communes', (req, res) => {
-  var query = req.query.q[0];
-
-  if (req.get('If-Modified-Since')) {
-    res.sendStatus(304);
-  }
-
-  const result = fuse.search(query.slice(0, 300)).slice(0, 10);
-
-  return res.json(result);
-});
-
 app.post('/commune', (req, res) => {
   if (!req.session.role) {
     return res.redirect('/');
   }
 
   if (!bureauxParCodeINSEE[req.body.insee]) {
-    return res.render('errorMessage', {message: 'Commune introuvable.'});
+    return res.render('errorMessage', {message: 'Nous ne trouvons pas de bureaux de vote dans cette commune.'});
   }
 
   req.session.insee = req.body.insee;
