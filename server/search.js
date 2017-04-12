@@ -5,11 +5,11 @@ const {communes} = require('./communes');
 const fuseOptions = {
   shouldSort: true,
   include: ['score'],
-  threshold: 0.6,
+  threshold: 0.1,
   location: 0,
-  distance: 100,
+  distance: 10,
   maxPatternLength: 32,
-  minMatchCharLength: 1,
+  minMatchCharLength: 2,
   keys: [
     'nomcom'
   ]
