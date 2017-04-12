@@ -127,7 +127,8 @@ app.get('/bureau', wrap(async (req, res) => {
   return res.render('burChoice', {
     commune: req.session.commune,
     bureaux: bureaux,
-    role: req.session.role
+    role: req.session.role,
+    cityWithDistricts: ['75056', '69123', '13055'].includes(req.session.insee)
   });
 }));
 
