@@ -52,32 +52,32 @@ async function iterate() {
         }
       }
     }
-
-    var columns = {
-      email: 'email',
-      first_name: 'first_name',
-      last_name: 'last_name',
-      phone: 'phone',
-      date: 'date',
-      zipcode: 'zipcode',
-      address1: 'address1',
-      address2: 'address2',
-      ville: 'ville_adresse',
-      commune: 'commune',
-      insee: 'insee',
-      bureaux: 'bureaux',
-      bureau_list: 'bureau_list',
-      numero_list: 'numero_list',
-      role: 'role',
-      second_tour: 'second_tour'
-    };
-
-    stringify(assesseurListe, { header: true, columns: columns , quotedString: true, quotedEmpty: true}, function(err, output){
-      var fileName = 'logs/' + Date.now() + '-extract-assesseurs.csv';
-
-      fs.writeFileSync(fileName, output);
-    });
   }
+
+  var columns = {
+    email: 'email',
+    first_name: 'first_name',
+    last_name: 'last_name',
+    phone: 'phone',
+    date: 'date',
+    zipcode: 'zipcode',
+    address1: 'address1',
+    address2: 'address2',
+    ville: 'ville_adresse',
+    commune: 'commune',
+    insee: 'insee',
+    bureaux: 'bureaux',
+    bureau_list: 'bureau_list',
+    numero_list: 'numero_list',
+    role: 'role',
+    second_tour: 'second_tour'
+  };
+
+  stringify(assesseurListe, { header: true, columns: columns , quotedString: true, quotedEmpty: true}, function(err, output){
+    var fileName = 'logs/' + (new Date()).toISOString() + '-extract-assesseurs.csv';
+
+    fs.writeFileSync(fileName, output);
+  });
 
   jsonLog = {};
 
@@ -132,7 +132,7 @@ async function iterate() {
   };
 
   stringify(delegueListe, { header: true, columns: columns2 , quotedString: true, quotedEmpty: true}, function(err, output){
-    var fileName = 'logs/' + Date.now() + '-extract-delegues.csv';
+    var fileName = 'logs/' + (new Date()).toISOString() + '-extract-delegues.csv';
 
     fs.writeFileSync(fileName, output);
   });
