@@ -218,6 +218,9 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
   if (!req.body.phone || !validator.isMobilePhone(req.body.phone, 'fr-FR')) {
     errors['phone'] = 'Numéro invalide.';
   }
+  if (!req.body.ville || !validator.isLength(req.body.ville, {min: 1, max: 500})) {
+    errors['ville'] = 'Ville invalide';
+  }
 
   if (Object.keys(errors).length > 0) {
     req.session.form = req.body;
@@ -243,6 +246,7 @@ app.post('/coordonnees', wrap(async (req, res, next) => {
     zipcode: req.body.zipcode,
     address1: req.body.address1,
     address2: req.body.address2,
+    ville: req.body.ville,
     commune: req.session.commune,
     insee:  req.session.insee,
     bureaux:  req.session.bureaux,
