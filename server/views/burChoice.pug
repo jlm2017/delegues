@@ -17,17 +17,19 @@ block content
             p.
               2. Choisissez les bureaux de votes où vous voulez être délégué&middot;e
 
-            if cityWithDistricts
-              .alert.alert-warning(role='alert').
-                A #{commune}, le numéro de bureau de vote est constitué de votre numéro
-                de bureau de vote (sur deux chiffres) tel qu'indiqué sur votre carte
-                électorale, précédé de votre numéro d'arrondissement (par exemple, pour
-                un bureau de vote indiqué comme 063 dans le 2ème arrondissement, le numéro
-                de bureau de vote correspondant est 0263).
             script.
               $(function() {
                 $('#bureau').selectize({maxItems: 10})[0].selectize.clear();
               });
+
+          if cityWithDistricts
+            .alert.alert-warning(role='alert').
+              A #{commune}, le numéro de bureau de vote est constitué de votre numéro
+              de bureau de vote (sur deux chiffres) tel qu'indiqué sur votre carte
+              électorale, précédé de votre numéro d'arrondissement (par exemple, pour
+              un bureau de vote indiqué comme 063 dans le 2ème arrondissement, le numéro
+              de bureau de vote correspondant est 0263).
+
           .form-group
             select(name="bureau" id="bureau")
               for bureau in bureaux
