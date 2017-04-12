@@ -37,6 +37,23 @@ const labels = {
 
 const {bureauxParCodeINSEE} = require('./communes');
 
+async function showBureaux(role, insee) {
+  var bureaux = bureauxParCodeINSEE[insee];
+  var listBurInCom = [];
+  for (var i = 0; i < bureaux.length; i++) {
+    if (await redis.getAsync(`${role}:${bureaux[i].insee}:${bureaux[i].bur}${role === 'assesseurs' ? ':2' : ''}`)) {
+      var tmp = bureaux[i].bur;
+      tmp += ' (complet)';
+      listBurInCom.push(tmp);
+      continue;
+    }
+
+    listBurInCom.push(bureaux[i].bur);
+  }
+
+  return listBurInCom;
+}
+
 async function freeBureaux(role, insee) {
   var bureaux = bureauxParCodeINSEE[insee];
   var listBurInCom = [];
@@ -116,7 +133,7 @@ app.all('/bureau', (req, res, next) => {
 });
 
 app.get('/bureau', wrap(async (req, res) => {
-  var bureaux = await freeBureaux(req.session.role, req.session.insee);
+  var bureaux = await showBureaux(req.session.role, req.session.insee);
 
   if (bureaux.length === 0) {
     return res.render('errorMessage', {
@@ -150,7 +167,9 @@ app.post('/bureau', wrap(async (req, res) => {
     if (!Array.isArray(req.body.bureau)) req.body.bureau = [req.body.bureau];
 
     if (Array.isArray(req.body.bureau) && req.body.bureau.filter(elem => !bureaux.includes(elem)).length > 0) {
-      return res.sendStatus(401);
+      return res.status(401).render('errorMessage', {
+        message: 'Au moins un des bureaux de vote selectionnés n\'existe pas ou est déjà réservé.'
+      });
     }
   }
 
