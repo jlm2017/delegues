@@ -11,7 +11,7 @@ block content
           p.text-important.text-center= message['errorSearch']
         form(action="/commune" method="POST")
           .form-group(class=errors && errors.adresse ? "has-error" : "")
-            label 1. Choisissez votre commune
+            label 1. Choisissez votre commune d'inscription sur les listes électorales
             input.form-control.input-block.selectized(type="text" id="insee" name="insee" required)
           input.btn.btn-primary.btn-block(type="submit" value="Sélectionner")
 

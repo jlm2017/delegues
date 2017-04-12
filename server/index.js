@@ -155,9 +155,7 @@ app.post('/bureau', wrap(async (req, res) => {
 
 
   if (req.session.role === 'delegues') {
-    if (!Array.isArray(req.body.bureau) && !bureaux.includes(req.body.bureau)) {
-      return res.sendStatus(401);
-    }
+    if (!Array.isArray(req.body.bureau)) req.body.bureau = [req.body.bureau];
 
     if (Array.isArray(req.body.bureau) && req.body.bureau.filter(elem => !bureaux.includes(elem)).length > 0) {
       return res.sendStatus(401);
@@ -311,11 +309,7 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
     return res.redirect('/delegues/merci');
   } else if (data.role === 'delegues') {
     var bureaux = await freeBureaux(data.role, data.insee);
-    if (!Array.isArray(data.bureaux) && !bureaux.includes(data.bureaux)) {
-      return res.redirect('/bureau_plein');
-    }
-
-    if (Array.isArray(data.bureaux) && data.bureaux.filter(elem => !bureaux.includes(elem)).length > 0) {
+    if (data.bureaux.filter(elem => !bureaux.includes(elem)).length > 0) {
       return res.redirect('/bureau_plein');
     }
 
@@ -323,7 +317,7 @@ app.get('/confirmation/:token', wrap(async (req, res) => {
     await redis.setAsync(`${data.email}`, JSON.stringify(data));
 
     for (var i = 0; i < data.bureaux.length; i++) {
-      await redis.setAsync(`delegues:${req.session.insee}:${data.bureaux}`, data.email);
+      await redis.setAsync(`delegues:${req.session.insee}:${data.bureaux[i]}`, data.email);
     }
 
     return res.redirect('/assesseurs/merci');
