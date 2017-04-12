@@ -16,6 +16,18 @@ block content
           input.btn.btn-primary.btn-block(type="submit" value="Sélectionner")
 
   script.
+    function isNotCityDistrict(city) {
+        var insee = city.citycode;
+        return !(
+            // Arrondissements parisiens
+            insee.startsWith('751') ||
+            // Arrondissements de Lyon
+            insee.startsWith('6938') ||
+            // Arrondissements de Marseille
+            insee.startsWith('132')
+        );
+    }
+
     $(function() {
       var communeSelectize = $('#commune-input').selectize({
         load: function(query, callback) {
@@ -31,7 +43,7 @@ block content
                   citycode: feature.properties.citycode,
                   label: feature.properties.city + ', ' + feature.properties.context
                 };
-              });
+              }).filter(isNotCityDistrict);
               return callback(list);
             }
           });
